@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
 import org.jetbrains.kotlin.types.refinement.TypeRefinement
+import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -67,7 +68,8 @@ class KotlinTypeRefinerImpl(
                 val cached = refinedTypeCache.computeIfAbsent(type.constructor) {
                     type.constructor.declarationDescriptor!!.defaultType.refine(this)
                 }
-                cached.replace(type.arguments)
+
+                cached.restoreAdditionalTypeInformation(type)
             }
             else -> type.refine(this)
         }
@@ -146,3 +148,8 @@ private val TypeConstructor.allDependentTypeConstructors: Collection<TypeConstru
 
 private fun TypeConstructor.isExpectClass() =
     declarationDescriptor?.safeAs<ClassDescriptor>()?.isExpect == true
+
+private fun KotlinType.restoreAdditionalTypeInformation(prototype: KotlinType): KotlinType {
+    return TypeUtils.makeNullableAsSpecified(this, prototype.isMarkedNullable)
+        .replaceAnnotations(prototype.annotations)
+}
