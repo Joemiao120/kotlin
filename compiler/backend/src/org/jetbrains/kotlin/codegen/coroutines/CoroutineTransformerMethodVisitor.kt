@@ -1241,9 +1241,26 @@ private fun updateLvtAccordingToLiveness(method: MethodNode, isForNamedFunction:
                 @Suppress("NAME_SHADOWING") val startLabel = startLabel ?: lvtRecord.start
                 // No LINENUMBER in range -> no way to put a breakpoint -> do not bother adding a record
                 if (InsnSequence(startLabel, endLabel).none { it is LineNumberNode }) continue
-                method.localVariables.add(
-                    LocalVariableNode(lvtRecord.name, lvtRecord.desc, lvtRecord.signature, startLabel, endLabel, lvtRecord.index)
-                )
+                var recordToExtend: LocalVariableNode? = null
+                for (record in method.localVariables) {
+                    if (record.name == lvtRecord.name &&
+                        record.desc == lvtRecord.desc &&
+                        record.signature == lvtRecord.signature &&
+                        record.index == lvtRecord.index
+                    ) {
+                        if (InsnSequence(record.end, startLabel).none { it is LineNumberNode }) {
+                            recordToExtend = record
+                            break
+                        }
+                    }
+                }
+                if (recordToExtend != null) {
+                    recordToExtend.end = endLabel
+                } else {
+                    method.localVariables.add(
+                        LocalVariableNode(lvtRecord.name, lvtRecord.desc, lvtRecord.signature, startLabel, endLabel, lvtRecord.index)
+                    )
+                }
             }
         }
     }
