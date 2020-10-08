@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.backend.jvm.lower.inlineclasses
 
+import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.ir.erasedUpperBound
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.codegen.state.md5base64
